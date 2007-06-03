@@ -3,7 +3,7 @@
  EyeTunes.framework - Cocoa iTunes Interface
  http://www.liquidx.net/eyetunes/
  
- Copyright (c) 2005, Alastair Tse <alastair@liquidx.net>
+ Copyright (c) 2005-2007, Alastair Tse <alastair@liquidx.net>
  All rights reserved.
  
  Redistribution and use in source and binary forms, with or without
@@ -34,8 +34,14 @@
  
 */
 
-#import "ETPlaylist.h"
+#import "EyeTunesVersions.h"
+#import "EyeTunesEventCodes.h"
+#import "ETEyeTunes.h"
 #import "ETTrackEnumerator.h"
+#import "ETPlaylist.h"
+#import "NSString+LongLongValue.h"
+
+#import "ETDebug.h"
 
 @implementation ETPlaylist
 
@@ -91,15 +97,24 @@ cleanup_reply_event:
 	return foundTrack;
 }
 
-//#if ITUNES_VERSION > ITUNES_6_0
 - (ETTrack *)trackWithPersistentId:(long long int)persistentId
 {
-	
+	if ([[EyeTunes sharedInstance] versionLessThan:ITUNES_6_0])
+		return nil;
+
 	ETTrack *foundTrack = nil;
-	AppleEvent *replyEvent = [self getElementOfClass:ET_CLASS_TRACK 
-											   byKey:ET_ITEM_PROP_PERSISTENT_ID 
-									withLongIntValue:persistentId];
-	
+	AppleEvent *replyEvent;
+
+	if ([[EyeTunes sharedInstance] versionLessThan:ITUNES_7_2]) {
+		replyEvent = [self getElementOfClass:ET_CLASS_TRACK
+									   byKey:ET_ITEM_PROP_PERSISTENT_ID 
+							withLongIntValue:persistentId];
+	}
+	else {
+		replyEvent = [self getElementOfClass:ET_CLASS_TRACK
+									   byKey:ET_ITEM_PROP_PERSISTENT_ID 
+							 withStringValue:[NSString stringWithFormat:@"%llX", persistentId]];
+	}
 	/* Read Results */
 	AEDesc replyObject;
 	OSErr err;
@@ -112,19 +127,76 @@ cleanup_reply_event:
 	foundTrack = [[[ETTrack alloc] initWithDescriptor:&replyObject] autorelease];
 	
 cleanup_reply_event:
-		AEDisposeDesc(replyEvent);
+	AEDisposeDesc(replyEvent);
 	free(replyEvent);
 	
 	return foundTrack;
 }
 
-- (long long int) persistentId
+- (ETTrack *)trackWithPersistentIdString:(NSString *)persistentId
 {
-	return [self getPropertyAsLongIntegerForDesc:ET_ITEM_PROP_PERSISTENT_ID];
+	if ([[EyeTunes sharedInstance] versionLessThan:ITUNES_6_0])
+		return nil;
 	
+	ETTrack *foundTrack = nil;
+	AppleEvent *replyEvent;
+	
+	if ([[EyeTunes sharedInstance] versionLessThan:ITUNES_7_2]) {
+		replyEvent = [self getElementOfClass:ET_CLASS_TRACK
+									   byKey:ET_ITEM_PROP_PERSISTENT_ID 
+							withLongIntValue:[persistentId longlongValue]];
+	}
+	else {
+		replyEvent = [self getElementOfClass:ET_CLASS_TRACK
+									   byKey:ET_ITEM_PROP_PERSISTENT_ID 
+							 withStringValue:persistentId];
+	}
+	/* Read Results */
+	AEDesc replyObject;
+	OSErr err;
+	err = AEGetParamDesc(replyEvent, keyDirectObject, typeWildCard, &replyObject);
+	if (err != noErr) {
+		ETLog(@"Error extracting from reply event: %d", err);
+		goto cleanup_reply_event;
+	}
+	
+	foundTrack = [[[ETTrack alloc] initWithDescriptor:&replyObject] autorelease];
+	
+cleanup_reply_event:
+	AEDisposeDesc(replyEvent);
+	free(replyEvent);
+	
+	return foundTrack;
 }
 
-//#endif
 
+- (long long int) persistentId
+{
+	if ([[EyeTunes sharedInstance] versionLessThan:ITUNES_6_0]) {
+		ETLog(@"persistentId Unsupported");
+		return -1;
+	}
+	
+	if ([[EyeTunes sharedInstance] versionLessThan:ITUNES_7_2])
+		return [self getPropertyAsLongIntegerForDesc:ET_ITEM_PROP_PERSISTENT_ID];	
+	else {
+		NSString *persistentId = [NSString stringWithFormat:@"0x%@",[self getPropertyAsStringForDesc:ET_ITEM_PROP_PERSISTENT_ID]];
+		return [persistentId longlongValue];
+	}
+}
+
+- (NSString *) persistentIdAsString
+{
+	
+	if ([[EyeTunes sharedInstance] versionLessThan:ITUNES_6_0]) {
+		ETLog(@"persistentIdAsString Unsupported");
+		return nil;
+	}
+	
+	if ([[EyeTunes sharedInstance] versionLessThan:ITUNES_7_2]) 
+		return [[NSString stringWithFormat:@"%llX",[self getPropertyAsLongIntegerForDesc:ET_ITEM_PROP_PERSISTENT_ID]] uppercaseString];
+	else 
+		return [self getPropertyAsStringForDesc:ET_ITEM_PROP_PERSISTENT_ID];
+}
 
 @end

@@ -5,7 +5,7 @@
  EyeTunes.framework - Cocoa iTunes Interface
  http://www.liquidx.net/eyetunes/
  
- Copyright (c) 2005, Alastair Tse <alastair@liquidx.net>
+ Copyright (c) 2005-2007, Alastair Tse <alastair@liquidx.net>
  All rights reserved.
  
  Redistribution and use in source and binary forms, with or without
@@ -36,16 +36,10 @@
  
 */
 
-#import <AppKit/AppKit.h>
-#import "ETDebug.h"
-
-#import "EyeTunesEventCodes.h"
+#import <Foundation/Foundation.h>
 #import "ETAppleEventObject.h"
 
-@class EyeTunes; 
-
 @interface ETTrack : ETAppleEventObject {
-
 }
 
 - (id) initWithDescriptor:(AEDesc *)desc;
@@ -70,13 +64,10 @@
 - (NSString *)grouping;
 - (NSString *)kind;
 - (NSString *)location;
-#if ITUNES_VERSION > ITUNES_6_0_1
-- (NSString *)lyrics;
-#endif
+- (NSString *)lyrics;					// >6.0.1
 - (NSDate *)modificationDate;
-#if ITUNES_VERSION > ITUNES_6_0
-- (long long int)persistentId;
-#endif
+- (long long int)persistentId;			// >=6.0
+- (NSString *) persistentIdAsString;	// >=6.0
 - (int)playedCount;
 - (NSDate *)playedDate;
 - (BOOL)podcast;
@@ -104,9 +95,7 @@
 - (void)setFinish:(int)newValue;
 - (void)setGenre:(NSString *)newValue;
 - (void)setGrouping:(NSString *)newValue;
-#if ITUNES_VERSION > ITUNES_6_0_1
-- (void)setLyrics:(NSString *)newValue;
-#endif
+- (void)setLyrics:(NSString *)newValue;	// >6.0.1
 - (void)setPlayedCount:(int)newValue;
 - (void)setPlayedDate:(NSDate *)newValue;
 - (void)setRating:(int)newValue;

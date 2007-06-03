@@ -3,7 +3,7 @@
  EyeTunes.framework - Cocoa iTunes Interface
  http://www.liquidx.net/eyetunes/
  
- Copyright (c) 2005, Alastair Tse <alastair@liquidx.net>
+ Copyright (c) 2005-2007, Alastair Tse <alastair@liquidx.net>
  All rights reserved.
  
  Redistribution and use in source and binary forms, with or without
@@ -34,9 +34,14 @@
  
 */
 
-
-#import "EyeTunes.h"
+#import <ApplicationServices/ApplicationServices.h>
+#import "EyeTunesVersions.h"
+#import "ETEyeTunes.h"
+#import "ETTrack.h"
+#import "ETPlaylist.h"
 #import "ETPlaylistEnumerator.h"
+
+#import "ETDebug.h"
 
 const OSType iTunesSignature = ET_APPLE_EVENT_OBJECT_DEFAULT_APPL;
 
@@ -219,10 +224,9 @@ const OSType iTunesSignature = ET_APPLE_EVENT_OBJECT_DEFAULT_APPL;
 #pragma mark iTunes Properties
 #pragma mark -
 
-// added by klep 060802
 - (int)playerPosition
 {
-   return (int)[self  getPropertyAsIntegerForDesc:ET_APP_PLAYER_POSITION];
+   return (int)[self getPropertyAsIntegerForDesc:ET_APP_PLAYER_POSITION];
 }
 
 - (DescType)playerState
@@ -519,8 +523,6 @@ cleanup_get_event:
 	
 }
 
-
-
 - (int) playlistCount
 {
 	return [self getCountOfElementsOfClass:ET_CLASS_PLAYLIST];
@@ -537,14 +539,33 @@ cleanup_get_event:
 
 }
 
-//#if ITUNES_VERSION > ITUNES_6_0
+// Applescript example:
+// 
+// tell application "iTunes"
+//		set theId to persistent ID of current playlist
+//		playlist whose persistent ID is theId
+// end tell
+//
+// However, this doesn't work in ScriptEditor + iTunes 7.2?
+
 - (ETPlaylist *)playlistWithPersistentId:(long long int)persistentId
 {
+	if (![self versionGreaterThan:ITUNES_6_0])
+		return nil;
 	
 	ETPlaylist *foundPlaylist = nil;
-	AppleEvent *replyEvent = [self getElementOfClass:ET_CLASS_PLAYLIST
-											   byKey:ET_ITEM_PROP_PERSISTENT_ID 
-									withLongIntValue:persistentId];
+	AppleEvent *replyEvent;
+	
+	if ([self versionLessThan:ITUNES_7_2]) {
+		replyEvent = [self getElementOfClass:ET_CLASS_PLAYLIST
+									   byKey:ET_ITEM_PROP_PERSISTENT_ID 
+							withLongIntValue:persistentId];
+	}
+	else {
+		replyEvent = [self getElementOfClass:ET_CLASS_PLAYLIST
+									   byKey:ET_ITEM_PROP_PERSISTENT_ID 
+							 withStringValue:[NSString stringWithFormat:@"%llX", persistentId]];
+	}
 	
 	/* Read Results */
 	AEDesc replyObject;
@@ -564,11 +585,61 @@ cleanup_reply_event:
 	return foundPlaylist;
 }
 
+// Applescript Example:
+//
+// tell application "iTunes"
+//		set theId to persistent ID of current track
+//		track of current playlist whose persistent ID is theId
+// end tell
+//
+
 - (ETTrack *)trackWithPersistentId:(long long int)persistentId
 {
 	return [[self libraryPlaylist] trackWithPersistentId:persistentId];
 }
-//#endif
+
+- (ETTrack *)trackWithPersistentIdString:(NSString *)persistentId
+{
+	return [[self libraryPlaylist] trackWithPersistentIdString:persistentId];
+}
+
+
+#pragma mark -
+#pragma mark Version Checking
+
+- (NSString *)versionString
+{
+	static NSString *_cachedVersion = nil;
+	if (_cachedVersion == nil) {
+		_cachedVersion = [[self getPropertyAsVersionForDesc:ET_APP_VERSION] retain];
+	}
+	return _cachedVersion;
+}
+
+- (unsigned int)versionNumber
+{
+	static unsigned int _cachedVersionInt = 0;
+	if (_cachedVersionInt == 0) {
+		NSArray *components = [[self versionString] componentsSeparatedByString:@"."];
+		int i;
+		for (i = 0; i < [components count] && i < 3; i++) {
+			_cachedVersionInt |= ([[components objectAtIndex:i] intValue] & 0xff) << (8 - 4*i);
+		}
+	}
+	return _cachedVersionInt;
+}
+
+- (BOOL) versionGreaterThan:(unsigned int)version
+{
+	unsigned int currentVersion = [self versionNumber];
+	return !!(currentVersion > version);
+}
+
+- (BOOL) versionLessThan:(unsigned int)version
+{
+	unsigned int currentVersion = [self versionNumber];
+	return !!(currentVersion < version);
+}
 
 
 @end

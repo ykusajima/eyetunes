@@ -5,7 +5,7 @@
  EyeTunes.framework - Cocoa iTunes Interface
  http://www.liquidx.net/eyetunes/
  
- Copyright (c) 2005, Alastair Tse <alastair@liquidx.net>
+ Copyright (c) 2005-2007, Alastair Tse <alastair@liquidx.net>
  All rights reserved.
  
  Redistribution and use in source and binary forms, with or without
@@ -139,6 +139,7 @@ enum {
 #define ET_APP_PLAYER_POSITION      'pPos'
 #define ET_APP_PLAYER_STATE         'pPlS'
 #define ET_APP_SELECTION			'sele'
+#define ET_APP_VERSION				'vers'
 // --- itunes application parameters end ---
 
 // --- track artwork start ---

@@ -12,81 +12,113 @@
 
 @implementation DebugController
 
+
+- (void) _append:(NSString *)string
+{
+	if (string != nil) {
+		NSAttributedString *str = [[[NSAttributedString alloc] initWithString:string] autorelease];
+		[[output textStorage] appendAttributedString:str];
+	}
+}
+
+
 - (void) awakeFromNib
 {
+	[self _append:@"Version: "];
+	[self _append:[[EyeTunes sharedInstance] versionString]];
+	[self _append:@"\n"];
 	
+	[self _append:@"Is greater than 7.3?"];
+	[self _append:[[EyeTunes sharedInstance] versionGreaterThan:0x0730] ? @"YES" : @"NO"];
+	[self _append:@"\n"];
+
+	[self _append:@"Is greater than 7.2.1?"];
+	[self _append:[[EyeTunes sharedInstance] versionGreaterThan:0x0721] ? @"YES" : @"NO"];
+	[self _append:@"\n"];
+	
+	
+	[self _append:@"Is greater than 7.2?"];
+	[self _append:[[EyeTunes sharedInstance] versionGreaterThan:ITUNES_7_2] ? @"YES" : @"NO"];
+	[self _append:@"\n"];
+
+	[self _append:@"Is greater than 7.1?"];
+	[self _append:[[EyeTunes sharedInstance] versionGreaterThan:ITUNES_7_1] ? @"YES" : @"NO"];
+	[self _append:@"\n"];
+
+	[self _append:@"Is less than 7.3?"];
+	[self _append:[[EyeTunes sharedInstance] versionLessThan:ITUNES_7_3] ? @"YES" : @"NO"];
+	[self _append:@"\n"];
+
+	[self _append:@"Is less than 7.2?"];
+	[self _append:[[EyeTunes sharedInstance] versionLessThan:ITUNES_7_2] ? @"YES" : @"NO"];
+	[self _append:@"\n"];
+	
+	
+	[self _append:@"Is less than 6.0?"];
+	[self _append:[[EyeTunes sharedInstance] versionLessThan:ITUNES_6_0] ? @"YES" : @"NO"];
+	[self _append:@"\n"];
+	
+	[[EyeTunes sharedInstance] versionNumber];
+	
+	
+}
+
+- (IBAction) prev:(id)sender
+{
+	[[EyeTunes sharedInstance] previousTrack];
+}
+
+- (IBAction) next:(id)sender
+{
+	[[EyeTunes sharedInstance] nextTrack];
+}
+	
+- (IBAction) playPause:(id)sender
+{
+	[[EyeTunes sharedInstance] playPause];
 }
 
 - (IBAction) goButtonPressed:(id)sender
 {
 	EyeTunes *e = [EyeTunes sharedInstance];
 	NSTextStorage *text = [output textStorage];
+	
 	NSDictionary *attr = [NSDictionary dictionaryWithObjectsAndKeys:
 		[NSFont fontWithName:@"Monaco" size:12], NSFontAttributeName, nil];
-	
-	// Find debug playlist
-	NSEnumerator *iter = [e playlistEnumerator];
-	ETPlaylist *pl = nil;
-	while (pl = [iter nextObject]) {
-		NSString *playlistName = [NSString stringWithFormat:@"Playlist: %@ %lld\n", [pl name], [pl persistentId]];
-		NSAttributedString *astr = [[[NSAttributedString alloc] initWithString:playlistName attributes:attr] autorelease];
-		[text appendAttributedString:astr];
-		NSLog(@"Playlist Name: %@", [pl name]);
-		if ([[pl name] isEqual:@"Debug"])
-			break;
-	}
-	
-	if (pl == nil) {
-		NSAttributedString *ss = [[[NSAttributedString alloc] initWithString:@"Unable to find 'Debug' Playlist in your iTunes\n" attributes:attr] autorelease];
-		[text appendAttributedString:ss];
-		pl = [e libraryPlaylist];
-	}
-	
-	// Found debug playlist, now we list all the songs 
-	iter = [pl trackEnumerator];
-	ETTrack *track = nil;
-	int max = 5, i = 0;
-	while (track = [iter nextObject]) {
-		NSArray *result = [track getPropertyAsStringWithDumpForDesc:ET_ITEM_PROP_NAME];
-		NSAttributedString *astr = [[[NSAttributedString alloc] initWithString:[result objectAtIndex:0] attributes:attr] autorelease];
-		[text appendAttributedString:astr];
-		
-		astr = [[[NSAttributedString alloc] initWithString:@"\n" attributes:attr] autorelease];
-		[text appendAttributedString:astr];
-		
-		astr = [[[NSAttributedString alloc] initWithString:[result objectAtIndex:1] attributes:attr] autorelease];
-		[text appendAttributedString:astr];
-		
-		result = [track getPropertyAsDateWithDumpForDesc:ET_TRACK_PROP_DATE_ADDED];
-		
-		astr = [[[NSAttributedString alloc] initWithString:[[result objectAtIndex:0] description] attributes:attr] autorelease];
-		[text appendAttributedString:astr];
-		
-		astr = [[[NSAttributedString alloc] initWithString:@"\n" attributes:attr] autorelease];
-		[text appendAttributedString:astr];
-		
-		astr = [[[NSAttributedString alloc] initWithString:[result objectAtIndex:1] attributes:attr] autorelease];
-		[text appendAttributedString:astr];
-		
-		result = [track getPropertyAsIntegerWithDumpForDesc:ET_TRACK_PROP_DURATION];
-		
-		astr = [[[NSAttributedString alloc] initWithString:[[result objectAtIndex:0] stringValue] attributes:attr] autorelease];
-		[text appendAttributedString:astr];
-		
-		astr = [[[NSAttributedString alloc] initWithString:@"\n" attributes:attr] autorelease];
-		[text appendAttributedString:astr];
-		
-		astr = [[[NSAttributedString alloc] initWithString:[result objectAtIndex:1] attributes:attr] autorelease];
-		[text appendAttributedString:astr];
-		
 
-		
-		if (i > max)
-			break;
-		i++;
-	}
 	
+	[self _append:[[e currentTrack] name]];
+	[self _append:@"\n"];	
+	[self _append:@"Persistent ID for track: (String): "];	
 	
+	[self _append:[[e currentTrack] persistentIdAsString]];
+	[self _append:@"\n"];
+	long long int trackId = [[e currentTrack] persistentId];
+	NSString *trackIdString = [[e currentTrack] persistentIdAsString];
+	[self _append:@"Persistent ID for track (long): "];
+	[self _append:[NSString stringWithFormat:@"%llX",trackId]];
+	[self _append:@"\n"];
+	
+	long long int playlistId = [[e libraryPlaylist] persistentId];
+	[self _append:@"Persistent ID for playlist: "];
+	[self _append:[NSString stringWithFormat:@"%llX",playlistId]];
+	[self _append:@"\n"];
+	ETPlaylist *playlist = [e playlistWithPersistentId:playlistId];
+	[self _append:@"Fetched playlist using persistent ID: "];
+	[self _append:[playlist name]];
+	[self _append:@"\n"];
+
+	
+	ETTrack *track = [e trackWithPersistentId:trackId];
+	[self _append:@"Fetched track using persistent ID by long long int: "];
+	[self _append:[track name]];
+	[self _append:@"\n"];
+
+	
+	track = [e trackWithPersistentIdString:trackIdString];
+	[self _append:@"Fetched track using persistent ID by NSString: "];
+	[self _append:[track name]];
+	[self _append:@"\n"];
 
 }
 

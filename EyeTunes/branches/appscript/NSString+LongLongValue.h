@@ -1,9 +1,11 @@
+/* EyeTunesEventCodes.h - Extracted AppleEvent Constants that iTunes Uses */
+
 /*
  
  EyeTunes.framework - Cocoa iTunes Interface
  http://www.liquidx.net/eyetunes/
  
- Copyright (c) 2005-2007 Alastair Tse <alastair@liquidx.net>
+ Copyright (c) 2007, Alastair Tse <alastair@liquidx.net>
  All rights reserved.
  
  Redistribution and use in source and binary forms, with or without
@@ -26,26 +28,17 @@
  ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE 
  LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
  CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
-						SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-						INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  POSSIBILITY OF SUCH DAMAGE.
  
  */
 
-#import <Foundation/Foundation.h>
-#import "ETDebug.h"
-#import "EyeTunesEventCodes.h"
-#import "ETPlaylist.h"
-#import "ETTrack.h"
+#import <Cocoa/Cocoa.h>
 
-@interface ETTrackEnumerator : NSEnumerator {
-	ETPlaylist *playlist;
-	int count;
-	int seq;
-}
 
-- (id) initWithPlaylist:(ETPlaylist *)newPlaylist;
-
+@interface NSString (LongLongValue)
+- (long long int)longlongValue;
 @end

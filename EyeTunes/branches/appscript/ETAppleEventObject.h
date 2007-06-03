@@ -7,7 +7,7 @@
  EyeTunes.framework - Cocoa iTunes Interface
  http://www.liquidx.net/eyetunes/
  
- Copyright (c) 2005, Alastair Tse <alastair@liquidx.net>
+ Copyright (c) 2005-2007, Alastair Tse <alastair@liquidx.net>
  All rights reserved.
  
  Redistribution and use in source and binary forms, with or without
@@ -41,9 +41,7 @@
 // Important URLs: 
 // http://developer.apple.com/documentation/mac/IAC/IAC-230.html
 
-#import <Foundation/Foundation.h>
 #import "EyeTunesEventCodes.h"
-#import "ETDebug.h"
 
 #define ET_APPLE_EVENT_OBJECT_DEFAULT_APPL 'hook'
 
@@ -69,6 +67,9 @@
 									  forProperty:(DescType)propertyType 
 									  forIntValue:(int)value;
 - (NSString *)	eventParameterStringForTestObject:(DescType)objectType 
+									  forProperty:(DescType)propertyType 
+									  forStringValue:(NSString *)value;
+- (NSString *)	eventParameterStringForTestObject:(DescType)objectType 
 									  forProperty:(DescType)propertyType;
 
 - (NSString *)	eventParameterStringForSearchingType:(DescType)objectType withTest:(NSString *)testString;
@@ -89,6 +90,9 @@
 - (AppleEvent *)	getElementOfClass:(DescType)classType 
 								byKey:(DescType)key 
 					 withLongIntValue:(long long int)value;
+- (AppleEvent *)	getElementOfClass:(DescType)classType 
+								byKey:(DescType)key 
+					  withStringValue:(NSString *)value;
 
 // not working yet
 //- (AppleEvent *) deleteElement:(int)index OfClass:(DescType)descType;
@@ -103,11 +107,12 @@
 - (NSDate *)	getPropertyAsDateForDesc:(DescType)descType;
 - (NSString *)  getPropertyAsPathForDesc:(DescType)descType;
 - (NSString *)  getPropertyAsPathURLForDesc:(DescType)descType;
+- (NSString *)	getPropertyAsVersionForDesc:(DescType)descType;
+
 - (BOOL)		setPropertyWithInteger:(int)value forDesc:(DescType)descType;
 - (BOOL)		setPropertyWithLongInteger:(long long int)value forDesc:(DescType)descType;
 - (BOOL)		setPropertyWithString:(NSString *)value forDesc:(DescType)descType;
 - (BOOL)		setPropertyWithDate:(NSDate *)value forDesc:(DescType)descType;
-
 // Debug functions
 #ifdef ET_DEBUG
 + (void) printDescriptor:(AEDesc *)desc;

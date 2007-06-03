@@ -3,7 +3,7 @@
  EyeTunes.framework - Cocoa iTunes Interface
  http://www.liquidx.net/eyetunes/
  
- Copyright (c) 2005, Alastair Tse <alastair@liquidx.net>
+ Copyright (c) 2005-2007, Alastair Tse <alastair@liquidx.net>
  All rights reserved.
  
  Redistribution and use in source and binary forms, with or without
@@ -34,7 +34,14 @@
  
 */
 
+#import "EyeTunesVersions.h"
+#import "EyeTunesEventCodes.h"
+#import "ETEyeTunes.h"
 #import "ETTrack.h"
+
+#import "NSString+LongLongValue.h"
+
+#import "ETDebug.h"
 
 @implementation ETTrack
 
@@ -282,24 +289,47 @@
 	return [self getPropertyAsPathURLForDesc:pETTrackLocation];
 }
 
-//#if ITUNES_VERSION > ITUNES_6_0_1
 - (NSString *)lyrics
 {
+	if (![[EyeTunes sharedInstance] versionGreaterThan:ITUNES_6_0_1])
+		return nil;
+
 	return [self getPropertyAsStringForDesc:ET_TRACK_PROP_LYRICS];
 }
-//#endif
 
 - (NSDate *)modificationDate
 {
 	return [self getPropertyAsDateForDesc:ET_TRACK_PROP_MOD_DATE];
 }
 
-//#if ITUNES_VERSION > ITUNES_6_0
 - (long long int) persistentId
 {
-	return [self getPropertyAsLongIntegerForDesc:ET_ITEM_PROP_PERSISTENT_ID];	
+	if ([[EyeTunes sharedInstance] versionLessThan:ITUNES_6_0]) {
+		ETLog(@"persistentId Unsupported");
+		return -1;
+	}
+	
+	if ([[EyeTunes sharedInstance] versionLessThan:ITUNES_7_2])
+		return [self getPropertyAsLongIntegerForDesc:ET_ITEM_PROP_PERSISTENT_ID];	
+	else {
+		NSString *persistentId = [NSString stringWithFormat:@"0x%@",[self getPropertyAsStringForDesc:ET_ITEM_PROP_PERSISTENT_ID]];
+		return [persistentId longlongValue];
+	}
 }
-//#endif
+
+- (NSString *) persistentIdAsString
+{
+
+	if ([[EyeTunes sharedInstance] versionLessThan:ITUNES_6_0]) {
+		ETLog(@"persistentIdAsString Unsupported");
+		return nil;
+	}
+	
+	if ([[EyeTunes sharedInstance] versionLessThan:ITUNES_7_2]) 
+		return [[NSString stringWithFormat:@"%llX",[self getPropertyAsLongIntegerForDesc:ET_ITEM_PROP_PERSISTENT_ID]] uppercaseString];
+	else 
+		return [self getPropertyAsStringForDesc:ET_ITEM_PROP_PERSISTENT_ID];
+}
 
 - (int)playedCount
 {
@@ -437,12 +467,13 @@
 	 [self setPropertyWithString:newValue forDesc:ET_TRACK_PROP_GROUPING];
 }
 
-//#if ITUNES_VERSION > ITUNES_6_0_1
 - (void)setLyrics:(NSString *)newValue
 {
+	if ([[EyeTunes sharedInstance] versionLessThan:ITUNES_6_0_1])
+		return;
+	
 	[self setPropertyWithString:newValue forDesc:ET_TRACK_PROP_LYRICS];
 }
-//#endif
 
 - (void)setPlayedCount:(int)newValue
 {
