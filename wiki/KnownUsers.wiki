@@ -1,3 +1,4 @@
+#summary Known Users
 
 There are a couple of known sightings of the EyeTunes framework in the
 wild including:
@@ -11,9 +12,6 @@ wild including:
    * [http://www.embraceware.com/software/ Awaken], iTunes alarm clock.
    * [http://www.apple.com/downloads/dashboard/music/bezeltunes.html BezelTunes], iTunes Controller Widget
 
-If you do use EyeTunes.framework in your code, I would be very happy
-if you could drop me an email just so I know where the code has ended
-up. The code is licensed under the BSD license, so it means you can
-use it in your commercial, freeware or open source product. Of course,
-if you feel so included to, you can always give me a token of
-appreciation like a free license to your app or just a couple of bucks :)
+If you do use EyeTunes.framework in your code, I would be very happy if you could drop me an email just so I know where the code has ended up. 
+
+The code is licensed under the BSD license, so it means you can use it in your commercial, freeware or open source product. Of course, if you feel so included to, you can always give me a token of appreciation like a free license to your app or just a couple of bucks :)
